@@ -1,6 +1,11 @@
 from binance.client import Client
 from binance.enums import *
 from plotly.graph_objects import Figure,Candlestick
+import matplotlib.pyplot as plt
+import matplotlib.pyplot as fig
+from mplfinance.original_flavor import candlestick_ohlc
+
+
 #import cufflinks as cf
 from pandas import DataFrame, to_datetime
 #from plotly import init_notebook_mode
@@ -47,7 +52,7 @@ class Bnbcomand:
         return resutado
     def historico(self,par,time,velas=10):
         time = time.upper()
-        par  = par.upper()
+        par = par.upper()
         if time =='H1':
             timeframe = self.cliente.KLINE_INTERVAL_1HOUR
         elif time =='H4':
@@ -59,7 +64,7 @@ class Bnbcomand:
 
         lista = self.cliente.get_klines(symbol=par,interval = timeframe, limit=velas)
         df = DataFrame(lista,columns=['data','open','high','low','close','5','6','7','8','9','10','11'])
-        df['data'] = to_datetime(df['data'], unit='ms')
+        #df['data'] = to_datetime(df['data'], unit='ms')
         df['open'] = df['open'].astype('float')
         df['close'] = df['close'].astype('float')
         df['high'] = df['high'].astype('float')
@@ -77,19 +82,25 @@ class Bnbcomand:
         df['teste'] = False
         df = df.drop(['candr','bodyr'], axis=1)
         for x in range(df.count()[1]):
-            if (df['borat'][x] < 50):
+            if (df['borat'][x] > -50) and (df['borat'][x] < 50):
                 df.loc[x, 'teste'] = True
 
         return df
     def grafar(self,par,time,velas):
         dados = self.historico(par=par,time=time,velas=velas)
-        dados.set_index('data', inplace=True)
+        #dados.set_index('data', inplace=True)
         print(dados)
-        fig = Figure(data=[Candlestick(open=dados['Open'],
-                                             high=dados['High'],
-                                             low=dados['Low'],
+        fig = Figure(data=[Candlestick(x=dados['data'], open=dados['open'],
+                                        high=dados['high'],
+                                        low=dados['low'],
+                                       close=dados['close']
                                              )])
-        fig.update_layout(title="TATAMOTORS SHARE PRICE (2016-2021)")
-        fig.get_subplot(10,10)
+        fig.update_layout(title="Teste de grafia ")
         fig.show()
-        #cf.set_config_file(offline=True)
+    def grafa2(self,par,time,velas):
+        dados = self.historico(par=par,time=time,velas=velas)
+        #dados['data'] = dados['data'].map(mdates.date2num())
+        #++print(dados)
+        ax1 = plt.subplot2grid((6,1), (0,0), rowspan=5, colspan=1)
+        ax1.xaxis_date()
+        candlestick_ohlc(ax1, dados.values, width=2, colorup='g', colordown='r')

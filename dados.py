@@ -21,6 +21,10 @@ class Dados():
         # Gera um dataframe a partir de um select
         dftemp = DataFrame(Tabela)
         return dftemp
+    def registro(self,sql):
+        self.cursor.execute(sql)
+        dados = self.cursor.fetchall()
+        return dados
     def ptab(self, valores='', operacao='P', tabela='', campos='', chave='', vlchave=''):
         try:
             self.con = self.abredb(self.host, self.usuario, self.senha, self.banco, 3306)
