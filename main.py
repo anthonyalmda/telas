@@ -1,23 +1,16 @@
-from tkinter import Tk
+from operacao import Operacional
 from datetime import datetime
-from ComandosBinance import Bnbcomand
 from apoio import Apoio
-class CriptoBot(Apoio,Bnbcomand):
+from dados import Dados
+class CriptoBot(Apoio,Operacional):
     def __init__(self):
         #self.root = Tk()
         self.carrega()
         self.padroes()
-        self.ativa(chave=self.chave_api,senha=self.senha_api)
-        #teste = self.converte(origem='USDT',destino='BRL', capital=10)
-        print(datetime.now())
-        for x in range(100):
-            teste = self.testevela('BNBBRL','h4',3)
-            valor = teste.loc[2]['close']
-            print(f'vez {x} valor {valor}')
-        print(datetime.now())
-        #self.tela()
-        #self.grafa2(par='BNBBRL',time='h4',velas=15)
-        #self.root.mainloop()
+        self.con = self.abredb(hostc=self.host, usuarioc=self.usuario, senhac=self.senha, bancoc=self.banco, porta=3306)
+        for x in range(1):
+            print(f'Passagem numero {x+1}')
+            self.testaparescompra(0,'h1')
     def tela(self):
         self.root.title("Robô de operações no mercado financeiro")
         self.root.configure(bg=self.corjanela)

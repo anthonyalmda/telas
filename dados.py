@@ -17,22 +17,31 @@ class Dados():
         if conexao.is_connected():
             cursor.close()
             conexao.close()
-    def geradf(self,Tabela):
+    def geradf(self,tabela,colunas='*',cadecalho=''):
         # Gera um dataframe a partir de um select
-        dftemp = DataFrame(Tabela)
+        cursor = self.con.cursor()
+        cursor.execute(f'select {colunas} from {tabela}')
+        df = cursor.fetchall()
+        dftemp = DataFrame(df)
+        dftemp.columns = cadecalho
         return dftemp
-    def registro(self,sql):
-        self.cursor.execute(sql)
-        dados = self.cursor.fetchall()
-        return dados
+
     def ptab(self, valores='', operacao='P', tabela='', campos='', chave='', vlchave=''):
-        try:
             self.con = self.abredb(self.host, self.usuario, self.senha, self.banco, 3306)
             if self.con == False:
                 messagebox('Atenção', 'Falha ao tentar abrir o banco de dados')
             self.cursor = self.con.cursor()
             operacao = operacao.upper()
             sql = ''
+            condicao = 'where '
+            cont = 0
+            for x in chave:
+                condicao += f'{x} = {vlchave[cont]}'
+                print(x, vlchave[cont])
+                if cont < len(chave) - 1:
+                    sql += ', '
+                cont += 1
+
             retorno = True
             if operacao == 'C':
                 sql = f'insert into {tabela} {campos} values ({valores})'
@@ -55,7 +64,5 @@ class Dados():
                 if self.cursor.rowcount == 0:
                     retorno = False
             return retorno
-        except Error:
-            messagebox.showwarning('Falha',F'Ocorreu o erro: {Error}')
-
-
+        # except Error:
+        #     print(F'Ocorreu o erro: {Error}')
