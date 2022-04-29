@@ -1,15 +1,18 @@
-from comandosBinance import Bnbcomand
-from tkinter import Frame
+from tkinter import Frame, Label
+from tkinter.ttk import Treeview, Scrollbar
 
-class Apoio(Bnbcomand):
-    def carrega(self):
+
+class Apoio:
+    def padroes(self):
         self.chave_api = 'gD2wMIIjim7uQGjS88flyIR6KHmeJiLAdv9wUY2RJCEoFvVKUBzQ3JwcJSehxuu3'
         self.senha_api = 'KjOLNwaVPl7AMaCe5DxAawmDCDTIxsfb6yJstucBqEMk2LGEBu5Okj3vgVPQYkFY'
         self.host = "br654.hostgator.com.br"
         self.usuario = 'chinaa94_bot'
         self.senha = '#Bot2022'
         self.banco = 'chinaa94_criptobot'
-    def padroes(self):
+
+        self.cliente = '003'
+
         self.corjn = '#f0f3f5'
         self.corjn2 = '#4c4d4d'
         self.corjn3 = '#acbea3'

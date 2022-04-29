@@ -1,4 +1,5 @@
-import mysql.connector
+#import mysqldb
+import mysql
 from mysql.connector import Error
 from pandas import DataFrame
 from tkinter import messagebox
@@ -7,62 +8,105 @@ class Dados():
     def __init__(self):
         self.padroes()
     def abredb(self,hostc,usuarioc,senhac,bancoc,porta):
+        """
+        Cria uma conexão com o banco de dados
+        :param hostc: Hoste de conexão
+        :param usuarioc: Usuário de conexão com o banco de dados
+        :param senhac: Senha de conexão com o banco de dados
+        :param bancoc: Nome do banco de dados a ser conectado
+        :param porta: Porta de conexão com o banco de dados
+        :return: Retorna verdadeiro caso a conexão seja bem sucedida
+        """
         # Faz a conexão ao banco de dados MySQL
         conexao = mysql.connector.connect(host=hostc, port=porta, user=usuarioc, password=senhac, database=bancoc, autocommit=True, compress=True)
-        if conexao.is_connected():
+        if conexao.is_connected(): # testa se a conexão foi bem sucedida
             return conexao
         else:
             return False
-    def fechadb(self,conexao,cursor):
-        if conexao.is_connected():
-            cursor.close()
-            conexao.close()
-    def geradf(self,tabela,colunas='*',cadecalho=''):
-        # Gera um dataframe a partir de um select
+    def fechadb(self,conexao):
+        """
+        Fecha a conexão com o banco de dados
+        :param conexao: variavel de conexão com o banco
+        :return:
+        """
+        if conexao.is_connected():  # Testa se a conexão ainda é válida
+            conexao.cursor.close()  # Encerra o cursor
+            conexao.close()  # Encerra a conexão
+    def geradf(self,tabela,colunas='*',cadecalho='',chave='', vlchave=''):
+        """
+        Gera um dataframe apartir de uma tabela do banco de dados
+        :param tabela: Nome da tabela onde sera extraido os dados
+        :param colunas: se não informado pega todas as colunas da tabela
+        :param cadecalho: titulo das colunas no dataframe
+        :param chave: Campo para filtrar a tabela pode ser passada uma tupla com os campos a pesquisar
+        :param vlchave: Valores para filtrar a tabela pode ser passada uma tupla com os valores da pesquisar
+        :return:
+        """
         cursor = self.con.cursor()
-        cursor.execute(f'select {colunas} from {tabela}')
-        df = cursor.fetchall()
-        dftemp = DataFrame(df)
-        dftemp.columns = cadecalho
-        return dftemp
+        condicao=''
+        # avalia se existe condição e monta a pesquisa
+        if type(chave) == str and chave != '':
+            condicao += f'where {chave} = {vlchave}'
+        elif chave != '':
+            condicao += 'where '
+            ct = 0
+            for x in chave:
+                condicao += f'{x} = {vlchave[ct]}'
+                if ct < len(chave) - 1:
+                    condicao += ' and '
+                ct += 1
+        cursor.execute(f'select {colunas} from {tabela} {condicao}') #executa a instrução no banco de dados
+        df = cursor.fetchall() # Carrega as lishas retornadas pelo cursor
+        return DataFrame(df, columns=cadecalho) # gera o dataframe e o retorna como resposta da função
 
     def ptab(self, valores='', operacao='P', tabela='', campos='', chave='', vlchave=''):
-            self.con = self.abredb(self.host, self.usuario, self.senha, self.banco, 3306)
-            if self.con == False:
-                messagebox('Atenção', 'Falha ao tentar abrir o banco de dados')
-            self.cursor = self.con.cursor()
-            operacao = operacao.upper()
-            sql = ''
+        """
+        função para operações em tabelas do banco de dados faz musca, alteração e cadastro
+        :param valores: pode ser uma tupla com a relação de valores a serem lançados ou uma variavel
+        :param operacao: tipo de operação a ser feito valores: A= Alterar, C= Cadastrar, E= excluir ou P= pesquisar
+        :param tabela: tabela onde sera realizada a operação
+        :param campos: Campos que seram afetados
+        :param chave: campo para a pesquisa, pode ser passada uma tupla com os campos
+        :param vlchave: valor procurado, pode ser passada uma tupla com os valores
+        :return:
+        """
+        self.cursor = self.con.cursor()
+        operacao = operacao.upper() # joga o valor para caixa alta
+        retorno = True
+        sql = ''
+        condicao = ''
+        # Montagem da condição where-------------------------------
+        if type(chave) == str and chave != '':
+            condicao += f'where {chave} = {vlchave}'
+        elif chave != '':
             condicao = 'where '
-            cont = 0
+            ct = 0
             for x in chave:
-                condicao += f'{x} = {vlchave[cont]}'
-                print(x, vlchave[cont])
-                if cont < len(chave) - 1:
+                condicao += f'{x} = {vlchave[ct]}'
+                if ct < len(chave) - 1:
+                    condicao += ' and '
+                ct += 1
+        # Testa o tipo de operação
+        if operacao == 'C':  # se é um cadastro
+            sql = f'insert into {tabela} {campos} values ({valores})'
+        elif operacao == 'A': # se é uma alteração
+            sql = f'update {tabela} set '
+            cont = 0
+            for z in valores:
+                sql += f'{campos[cont]} = {z}'
+                if cont < len(campos)-1:
                     sql += ', '
                 cont += 1
-
-            retorno = True
-            if operacao == 'C':
-                sql = f'insert into {tabela} {campos} values ({valores})'
-            elif operacao == 'A':
-                sql = f'update {tabela} set '
-                cont = 0
-                for z in valores:
-                    sql += f'{campos[cont]} = {z}'
-                    if cont < len(campos)-1:
-                        sql += ', '
-                    cont += 1
-                sql += f' Where {chave} = {vlchave};'
-            elif operacao == 'E':
-                sql = f'delete from {tabela} where {chave} = {vlchave};'
-            elif operacao == 'P':
-                sql = f'select * from {tabela} where {chave}={vlchave}'
-            self.cursor.execute(sql)
-            self.ptabret = self.cursor.fetchall()
-            if operacao=='P':
-                if self.cursor.rowcount == 0:
-                    retorno = False
-            return retorno
+            sql += condicao
+        elif operacao == 'E': # se é uma exclusão
+            sql = f'delete from {tabela} {condicao};'
+        elif operacao == 'P': # se é uma pesquisa
+            sql = f'select * from {tabela} {condicao}'
+        self.cursor.execute(sql) # Executa a instrução no banco de dados
+        self.ptabret = self.cursor.fetchall()
+        if operacao=='P':
+            if self.cursor.rowcount == 0:
+                retorno = False  # Se a pesquisa não encontrar nada retorna Falso
+        return retorno
         # except Error:
         #     print(F'Ocorreu o erro: {Error}')

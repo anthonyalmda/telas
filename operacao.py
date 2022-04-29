@@ -5,13 +5,21 @@ from comandosBinance import Bnbcomand
 
 class Operacional(Dados, Bnbcomand):
     def testaparescompra(self,diferenca,time):
-        time = time.upper()
-        df = self.geradf('ativos','*',['cliente','moeda_Base','moeda_compra','cod_opera','lote'])
-        #print(df)
+        """
+        Funcão de teste de possível entrada
+        :param diferenca: tamanho da vela de fuga para considerar armar a operação
+        :param time: timeframe da operação
+        :return:
+        """
+        time = time.upper()         #ajusta o valor passado para caixa alta
+        #criar o dataframe com as informações da tabela
+        df = self.geradf('ativos','*',['cliente', 'moeda_Base', 'moeda_compra', 'cod_opera', 'lote'], chave='cliente', vlchave=f'{self.cliente}')
+        # varredura do dataframe
         for x in range(len(df)):
-            ativo = df.loc[x,'moeda_Base']+df.loc[x,'moeda_compra']
-            cod_opera = df.loc[x,'cod_opera']
+            ativo = df.loc[x, 'moeda_Base']+df.loc[x, 'moeda_compra']
+            cod_opera = df.loc[x, 'cod_opera']
             teste = self.testevela(par=ativo,time=time,velas=4)
+            self.desativa()
             if teste.loc[1,'teste']==True:
                 vl_velaindefinida = teste.loc[1,'close']-teste.loc[1,'open']
                 ponto_compra =  teste.loc[1,'high']
@@ -26,15 +34,9 @@ class Operacional(Dados, Bnbcomand):
                 vl_velafuga = teste.loc[2,'close']-teste.loc[1,'open']
             if teste.loc[0,'teste'] == True or teste.loc[1,'teste'] == True:
                 if (vl_velaindefinida*diferenca) <= vl_velafuga:
-                    print(f'O par {ativo} está confirmado para operar {vl_velaindefinida,vl_velafuga}')
-                    if not self.ptab(operacao='p', tabela='operacoes', chave=('cod_opera','preco_abertura'), vlchave=(cod_opera,ponto_compra)):
-                        self.ptab(valores=())
-                else:
-                    print(f'O par {ativo} não tem diferença suficiente {vl_velaindefinida, vl_velafuga}')
-            else:
-                print(f'O par {ativo} não se encontra em indefinição')
-        # self.desativa()
-        # print(self.cotacao('BNBBRL'))
+                    if not self.ptab(operacao='p', tabela='operacoes', chave=('ativo','preco_abertura'), vlchave=(cod_opera,ponto_compra)):
+                        valorc = (f"'{cod_opera}','{ponto_compra}'")
+                        self.ptab(operacao='C', tabela='operacoes', campos='(ativo,preco_abertura)', valores=valorc)
 
     def abreordem(self):
         pass

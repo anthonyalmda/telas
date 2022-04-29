@@ -1,29 +1,39 @@
 from binance.client import Client
 from binance.enums import *
+from apoio import Apoio
 
-
-#import cufflinks as cf
 from pandas import DataFrame, to_datetime
-#from plotly import init_notebook_mode
-#init_notebook_mode(connected=True)
-#cf.go_offline()
-class Bnbcomand:
+class Bnbcomand(Apoio):
+    def __init__(self):
+        self.carrega()
     def ativa(self, chave, senha):
+        """
+        Ativa a conexão com a API da Binance
+        :param chave: Chave API da Binance
+        :param senha: Senha da chave API
+        :return:
+        """
         self.chave = chave
         self.senha = senha
         self.cliente = Client(api_key=self.chave, api_secret=self.senha) # faz a conexão com a binance
-    def desativa(self):
+    def desativa(self): # Encerra a conexão com a API da Binance
         self.cliente.close_connection()
         #self.cliente.d
     def moedas(self,filtro = True):
-        self.ativa(chave=self.chave_api,senha=self.senha_api)
-        self.info = self.cliente.get_account()
-        self.lista = self.info['balances']
-        self.desativa()
-        df = DataFrame(self.lista)
-        df['free'] = df['free'].astype('float')
-        if filtro:
+        """
+        Lista as moedas de negociação na corretora
+        :param filtro: Se for especificado como True ou não for informado mostra apenas as moedas com saldo disponível
+        :return: retorna um dataframe com a lista das moedas e seus saldos
+        """
+        self.ativa(chave=self.chave_api,senha=self.senha_api)  # Ativa a conexão com a API
+        self.info = self.cliente.get_account()  # Pega a relação de dados da conta
+        self.lista = self.info['balances']  # Seleciona apenas a listagem das moedas
+        self.desativa()  # Encerra a conexão com a API
+        df = DataFrame(self.lista)  # gera um dataframe com a lista de moedas
+        df['free'] = df['free'].astype('float')  # converte a coluna em Float
+        if filtro:  # Se a filtragem estiver ativa, filtra apenas as moedas com saldo
             df = df[df['free'] > 0]
+        # Altera o nome das colunas do dataframe
         df.rename(columns={'asset':'ativo','free':'valor','locked':'bloqueado'}, inplace=True)
         return df
     def compra(self,quantidade,par):

@@ -1,6 +1,10 @@
 from plotly.graph_objects import Figure,Candlestick
 import matplotlib.pyplot as plt
 from mplfinance.original_flavor import candlestick_ohlc
+#import cufflinks as cf
+#from plotly import init_notebook_mode
+#init_notebook_mode(connected=True)
+#cf.go_offline()
 
 
 
