@@ -1,5 +1,5 @@
 from tkinter import Tk
-from operacao import Operacional
+from operacional import Operacional
 from time import time,ctime
 from  datetime import datetime
 class Varredura(Operacional):
@@ -14,13 +14,19 @@ class Varredura(Operacional):
         self.telavarredura.title('Busca ativa do sistema')
         self.telavarredura.geometry('700x400+400+200')
         self.telavarredura.configure(bg=self.corjn2)
-    def rodapesquisa(self,timeframe='h4'):
-        timeframe = timeframe.upper()
+    def rodapesquisa(self,time='h4'):
+        time = time.upper()
+        data = ''
+        tdia = thora = 0
+        teste = False
         while True:
             data = str(datetime.now())[0:10]
             tempo = str(datetime.now())[11:19]
-
-            hora = tempo[0:2]
-            print(tempo, data, hora)
+            dia = int(data[8:])
+            hora = int(tempo[0:2])
+            if time == 'H1':
+                if hora != thora:
+                    thora = hora
+                    teste = True
             self.testaparescompra(3,'h4')
             quit()

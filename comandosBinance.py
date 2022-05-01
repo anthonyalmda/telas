@@ -1,11 +1,13 @@
 from binance.client import Client
 from binance.enums import *
 from apoio import Apoio
-
 from pandas import DataFrame, to_datetime
+
+
 class Bnbcomand(Apoio):
     def __init__(self):
         self.carrega()
+
     def ativa(self, chave, senha):
         """
         Ativa a conexão com a API da Binance
@@ -16,16 +18,18 @@ class Bnbcomand(Apoio):
         self.chave = chave
         self.senha = senha
         self.cliente = Client(api_key=self.chave, api_secret=self.senha) # faz a conexão com a binance
+
     def desativa(self): # Encerra a conexão com a API da Binance
         self.cliente.close_connection()
         #self.cliente.d
+
     def moedas(self,filtro = True):
         """
         Lista as moedas de negociação na corretora
         :param filtro: Se for especificado como True ou não for informado mostra apenas as moedas com saldo disponível
         :return: retorna um dataframe com a lista das moedas e seus saldos
         """
-        self.ativa(chave=self.chave_api,senha=self.senha_api)  # Ativa a conexão com a API
+        self.ativa(chave=self.chave_api,senha=self.senha_api)  # Ativa a conexão com a API da Binance
         self.info = self.cliente.get_account()  # Pega a relação de dados da conta
         self.lista = self.info['balances']  # Seleciona apenas a listagem das moedas
         self.desativa()  # Encerra a conexão com a API
@@ -34,9 +38,10 @@ class Bnbcomand(Apoio):
         if filtro:  # Se a filtragem estiver ativa, filtra apenas as moedas com saldo
             df = df[df['free'] > 0]
         # Altera o nome das colunas do dataframe
-        df.rename(columns={'asset':'ativo','free':'valor','locked':'bloqueado'}, inplace=True)
+        df.rename(columns={'asset': 'ativo', 'free': 'valor', 'locked': 'bloqueado'}, inplace=True)
         return df
-    def compra(self,quantidade,par):
+
+    def compra(self, quantidade, par):
         self.ativa(chave=self.chave_api,senha=self.senha_api)
         ordem = self.cliente.create_order(
             symbol=par,
@@ -48,7 +53,8 @@ class Bnbcomand(Apoio):
         for item in ordem:
             print(item)
         return ordem
-    def venda(self,qtd_venda,moeda):
+
+    def venda(self, qtd_venda, moeda):
         self.ativa(chave=self.chave_api,senha=self.senha_api)
         ordem = self.cliente.create_order(
             symbol=moeda,
@@ -57,17 +63,31 @@ class Bnbcomand(Apoio):
             quantity=qtd_venda
         )                               # ordem de Venda enviada a Binance
         self.desativa()
-    def converte(self, origem,destino, vlmoeda=0 , capital=0):
-        self.ativa(chave=self.chave_api,senha=self.senha_api)
-        valor = self.cotacao(origem+destino)
-        self.desativa()
-        if vlmoeda == 0 and capital == 0:
+
+    def converte(self, origem, destino, capital=0):
+        """
+        Faz o calculo do lote a ser comprado retornado o montante em criptomoeda a ser comprado
+        :param origem: Moeda a ser utilizada para a compra
+        :param destino: Moeda a ser comprada
+        :param vlmoeda: valor da
+        :param capital:
+        :return:
+        """
+        if capital == 0:  # se não for passado o valor do lote a função retorna zero
             return 0
-        resutado = 0
-        if capital != 0:
-            resutado = capital*valor
-        return resutado
+        self.ativa(chave=self.chave_api,senha=self.senha_api)  # Ativa a conexão com a API da Binance
+        valor = self.cotacao(origem+destino)  # Pega a cotação atual da moeda
+        self.desativa()  # Encerra a conexão com a API
+        return capital / valor
+
     def historico(self,par,time,velas=10):
+        """
+        Gera um dataframe com a relação das ultimas velas por padrão 10
+        :param par: Dupa de moedas a apresentar os resultados
+        :param time: Timeframe das velas pode ser H1, H4, D1 ou WE
+        :param velas:
+        :return:
+        """
         self.ativa(chave=self.chave_api,senha=self.senha_api)
         time = time.upper()
         par = par.upper()

@@ -8,8 +8,8 @@ class Criptobot(Param,Varredura):
         self.padroes()
         self.con = self.abredb(hostc=self.host,bancoc=self.banco,usuarioc=self.usuario,senhac=self.senha,porta=3306)
         #self.tela()
-        #Varredura(self.con)
-        print(self.moedas())
+        Varredura(self.con)
+        #print(self.moedas())
         #self.root.mainloop()
     def tela(self):
         self.root.title('Robô de criptomoedas')

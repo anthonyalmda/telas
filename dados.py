@@ -34,7 +34,7 @@ class Dados():
             conexao.close()  # Encerra a conexão
     def geradf(self,tabela,colunas='*',cadecalho='',chave='', vlchave=''):
         """
-        Gera um dataframe apartir de uma tabela do banco de dados
+        Gera um dataframe apartir de uma tabela do banco de dados podendo ser feito uma filtragem dos dados
         :param tabela: Nome da tabela onde sera extraido os dados
         :param colunas: se não informado pega todas as colunas da tabela
         :param cadecalho: titulo das colunas no dataframe
@@ -62,10 +62,10 @@ class Dados():
     def ptab(self, valores='', operacao='P', tabela='', campos='', chave='', vlchave=''):
         """
         função para operações em tabelas do banco de dados faz musca, alteração e cadastro
-        :param valores: pode ser uma tupla com a relação de valores a serem lançados ou uma variavel
+        :param valores: pode ser uma tupla com a relação de valores a serem lançados ou uma variavel simples
         :param operacao: tipo de operação a ser feito valores: A= Alterar, C= Cadastrar, E= excluir ou P= pesquisar
         :param tabela: tabela onde sera realizada a operação
-        :param campos: Campos que seram afetados
+        :param campos:  pode ser uma tupla com a relação de campos que seram afetados ou apenas um campo simples
         :param chave: campo para a pesquisa, pode ser passada uma tupla com os campos
         :param vlchave: valor procurado, pode ser passada uma tupla com os valores
         :return:
@@ -76,12 +76,12 @@ class Dados():
         sql = ''
         condicao = ''
         # Montagem da condição where-------------------------------
-        if type(chave) == str and chave != '':
-            condicao += f'where {chave} = {vlchave}'
+        if type(chave) == str and chave != '': # verifica se a chave é uma string e se está vazia
+            condicao += f'where {chave} = {vlchave}'  # so for string e não estiver vazia cria uma condição simples
         elif chave != '':
             condicao = 'where '
             ct = 0
-            for x in chave:
+            for x in chave:  # Varre a tupla para a montagem da condição
                 condicao += f'{x} = {vlchave[ct]}'
                 if ct < len(chave) - 1:
                     condicao += ' and '
@@ -92,11 +92,14 @@ class Dados():
         elif operacao == 'A': # se é uma alteração
             sql = f'update {tabela} set '
             cont = 0
-            for z in valores:
-                sql += f'{campos[cont]} = {z}'
-                if cont < len(campos)-1:
-                    sql += ', '
-                cont += 1
+            if type(valores)== tuple:
+                for z in valores:
+                    sql += f'{campos[cont]} = {z}'
+                    if cont < len(campos)-1:
+                        sql += ', '
+                    cont += 1
+            else:
+                sql += f'{campos} = {valores}'
             sql += condicao
         elif operacao == 'E': # se é uma exclusão
             sql = f'delete from {tabela} {condicao};'
