@@ -1,4 +1,4 @@
-from tkinter import Tk
+#from tkinter import Tk
 from parametros import Param
 from varredura import Varredura
 
@@ -6,9 +6,9 @@ class Criptobot(Param,Varredura):
     def __init__(self):
         #self.root = Tk()
         self.padroes()
-        self.con = self.abredb(hostc=self.host,bancoc=self.banco,usuarioc=self.usuario,senhac=self.senha,porta=3306)
         #self.tela()
-        Varredura(self.con)
+        #print(self.historico('ethbRL','h4',5))
+        Varredura()
         #print(self.moedas())
         #self.root.mainloop()
     def tela(self):

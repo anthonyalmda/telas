@@ -2,8 +2,6 @@ from binance.client import Client
 from binance.enums import *
 from apoio import Apoio
 from pandas import DataFrame, to_datetime
-
-
 class Bnbcomand(Apoio):
     def __init__(self):
         self.carrega()
@@ -102,27 +100,31 @@ class Bnbcomand(Apoio):
 
         lista = self.cliente.get_klines(symbol=par,interval = timeframe, limit=velas)
         self.desativa()
-        df = DataFrame(lista,columns=['data','open','high','low','close','5','6','7','8','9','10','11'])
-        #df['data'] = to_datetime(df['data'], unit='ms')
-        df['open'] = df['open'].astype('float')
-        df['close'] = df['close'].astype('float')
-        df['high'] = df['high'].astype('float')
-        df['low'] = df['low'].astype('float')
+        df = DataFrame(lista,columns=['data','open','high','low','close','5','6','7','8','9','10','11']) #,dtype=float, )
+
+        #df = df.replace('[^\d.]', '', regex=True).astype(float)
+
+        df['data'] = to_datetime(df['data'], unit='ms')
+        # df['open'] = df['open'].astype('float')
+        # df['close'] = df['close'].astype('float')
+        # df['high'] = df['high'].astype('float')
+        # df['low'] = df['low'].astype('float')
         #df['volume'] = df['volume'].astype('float')
         return df.drop(['5','6','7','8','9','10','11'], axis=1)
+
     def cotacao(self,par):
         self.ativa(chave=self.chave_api,senha=self.senha_api)
         lista = self.cliente.get_recent_trades(symbol=par)
         self.desativa()
         return float(lista[-1]['price'])
+
     def testevela(self,par,time,velas):
-        self.ativa(chave=self.chave_api,senha=self.senha_api)
         df = self.historico(par,time=time,velas=velas)
-        self.desativa()
-        df['candr'] = (df['high'] - df['low'])
-        df['bodyr'] = (df['open'] - df['close'])
+        for x in range(len(df)):
+            df.loc[x,'candr'] = float(df.loc[x,'high']) - float(df.loc[x,'low'])
+            df.loc[x,'bodyr'] = (float(df.loc[x,'open']) - float(df.loc[x,'close']))
         df['borat'] = df['bodyr']*100/ df['candr']
-        df['teste'] = False
+        df.loc[x,'teste'] = False
         df = df.drop(['candr','bodyr'], axis=1)
         for x in range(df.count()[1]):
             if (df['borat'][x] > -50) and (df['borat'][x] < 50):

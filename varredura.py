@@ -1,32 +1,59 @@
-from tkinter import Tk
+from tkinter import Tk, Button
 from operacional import Operacional
-from time import time,ctime
-from  datetime import datetime
+from datetime import datetime
+from asyncio import get_event_loop, coroutine, get_running_loop
+from concurrent.futures import ThreadPoolExecutor,ProcessPoolExecutor
+
+
 class Varredura(Operacional):
-    def __init__(self,con):
-        self.con=con
+    def __init__(self):
         self.padroes()
         self.telavarredura = Tk()
         self.janelavarredura()
-        self.rodapesquisa()
         self.telavarredura.mainloop()
+
     def janelavarredura(self):
         self.telavarredura.title('Busca ativa do sistema')
         self.telavarredura.geometry('700x400+400+200')
         self.telavarredura.configure(bg=self.corjn2)
-    def rodapesquisa(self,time='h4'):
-        time = time.upper()
-        data = ''
-        tdia = thora = 0
-        teste = False
+        self.varre_buton()
+
+    def varre_buton(self):
+        self.btn_iniciar = Button(self.telavarredura, text='Iniciar', command=self.inicio)
+        self.btn_iniciar.place(x=600, y=1)
+
+    async def inicio(self):
+        loop = get_running_loop()
+        with ProcessPoolExecutor() as pool:
+            resultado = await loop.run_in_executor(self.pesquisa_oportunidades,'h1')
+        # loop.run_until_complete(self.pesquisa_oportunidades('h1'))
+        # loop.close()
+
+        #targete = Pesquisa_oportunidades
+        #lista = ['H1']
+        #trabalhovarre = Pool(1)
+        #respostavarre = trabalhovarre.map(targete, lista)
+
+    def pesquisa_oportunidades(self, timeframe):
+        timeframe = timeframe.upper()
+        dt_data = ''
+        dt_tdia = dt_thora = 0
+        bo_teste = False
+        #import ipdb ; ipdb.set_trace()
         while True:
-            data = str(datetime.now())[0:10]
-            tempo = str(datetime.now())[11:19]
-            dia = int(data[8:])
-            hora = int(tempo[0:2])
-            if time == 'H1':
-                if hora != thora:
-                    thora = hora
-                    teste = True
-            self.testaparescompra(3,'h4')
-            quit()
+       # for x in range(3):
+            dt_data = str(datetime.now())[0:10]
+            dt_dia = int(dt_data[8:])
+            dt_hora = int(str(datetime.now())[11:13])
+            self.testaparescompra(3, 'h4', self.cliente)
+            if timeframe == 'H1':
+                if dt_hora != dt_thora:
+                    dt_thora = dt_hora
+                    bo_teste = True
+                    self.testaparescompra(3, 'h4', self.cliente)
+            elif timeframe == 'H4':
+                if int(dt_hora)%4 == 0 and dt_hora != dt_thora:
+                    dt_thora = dt_hora
+                    bo_teste = True
+                    self.testaparescompra(0, 'h4')
+            #break

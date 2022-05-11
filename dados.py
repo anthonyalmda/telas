@@ -1,12 +1,12 @@
-#import mysqldb
 import mysql
 from mysql.connector import Error
 from pandas import DataFrame
-from tkinter import messagebox
+
 
 class Dados():
     def __init__(self):
         self.padroes()
+
     def abredb(self,hostc,usuarioc,senhac,bancoc,porta):
         """
         Cria uma conexão com o banco de dados
@@ -23,6 +23,7 @@ class Dados():
             return conexao
         else:
             return False
+
     def fechadb(self,conexao):
         """
         Fecha a conexão com o banco de dados
@@ -30,8 +31,9 @@ class Dados():
         :return:
         """
         if conexao.is_connected():  # Testa se a conexão ainda é válida
-            conexao.cursor.close()  # Encerra o cursor
+            #conexao.cursor.close()  # Encerra o cursor
             conexao.close()  # Encerra a conexão
+
     def geradf(self,tabela,colunas='*',cadecalho='',chave='', vlchave=''):
         """
         Gera um dataframe apartir de uma tabela do banco de dados podendo ser feito uma filtragem dos dados
@@ -42,7 +44,6 @@ class Dados():
         :param vlchave: Valores para filtrar a tabela pode ser passada uma tupla com os valores da pesquisar
         :return:
         """
-        cursor = self.con.cursor()
         condicao=''
         # avalia se existe condição e monta a pesquisa
         if type(chave) == str and chave != '':
@@ -55,11 +56,13 @@ class Dados():
                 if ct < len(chave) - 1:
                     condicao += ' and '
                 ct += 1
-        cursor.execute(f'select {colunas} from {tabela} {condicao}') #executa a instrução no banco de dados
-        df = cursor.fetchall() # Carrega as lishas retornadas pelo cursor
+        print(f'select {colunas} from {tabela} {condicao}')
+        self.cursor.execute(f'select {colunas} from {tabela} {condicao}') #executa a instrução no banco de dados
+        df = self.cursor.fetchall() # Carrega as lishas retornadas pelo cursor
+        self.fechadb(self.mys_con)
         return DataFrame(df, columns=cadecalho) # gera o dataframe e o retorna como resposta da função
 
-    def ptab(self, valores='', operacao='P', tabela='', campos='', chave='', vlchave=''):
+    def ptab(self, valores='', operacao='P', tabela='', campos='', chave='', vlchave='', condicao=''):
         """
         função para operações em tabelas do banco de dados faz musca, alteração e cadastro
         :param valores: pode ser uma tupla com a relação de valores a serem lançados ou uma variavel simples
@@ -70,22 +73,26 @@ class Dados():
         :param vlchave: valor procurado, pode ser passada uma tupla com os valores
         :return:
         """
-        self.cursor = self.con.cursor()
+        self.mys_con = self.abredb(hostc=self.host,bancoc=self.banco,usuarioc=self.usuario,senhac=self.senha,porta=3306)
+        self.cursor = self.mys_con.cursor()
         operacao = operacao.upper() # joga o valor para caixa alta
         retorno = True
         sql = ''
-        condicao = ''
-        # Montagem da condição where-------------------------------
-        if type(chave) == str and chave != '': # verifica se a chave é uma string e se está vazia
-            condicao += f'where {chave} = {vlchave}'  # so for string e não estiver vazia cria uma condição simples
-        elif chave != '':
-            condicao = 'where '
-            ct = 0
-            for x in chave:  # Varre a tupla para a montagem da condição
-                condicao += f'{x} = {vlchave[ct]}'
-                if ct < len(chave) - 1:
-                    condicao += ' and '
-                ct += 1
+        if condicao == '':
+            teste_condicao = ''
+            # Montagem da condição where-------------------------------
+            if type(chave) == str and chave != '': # verifica se a chave é uma string e se está vazia
+                teste_condicao += f'where {chave} = {vlchave}'  # so for string e não estiver vazia cria uma condição simples
+            elif chave != '':
+                teste_condicao = 'where '
+                ct = 0
+                for x in chave:  # Varre a tupla para a montagem da condição
+                    teste_condicao += f'{x} = {vlchave[ct]}'
+                    if ct < len(chave) - 1:
+                        teste_condicao += ' and '
+                    ct += 1
+        else:
+            teste_condicao = condicao
         # Testa o tipo de operação
         if operacao == 'C':  # se é um cadastro
             sql = f'insert into {tabela} {campos} values ({valores})'
@@ -100,16 +107,18 @@ class Dados():
                     cont += 1
             else:
                 sql += f'{campos} = {valores}'
-            sql += condicao
+            sql += teste_condicao
         elif operacao == 'E': # se é uma exclusão
-            sql = f'delete from {tabela} {condicao};'
+            sql = f'delete from {tabela} {teste_condicao};'
         elif operacao == 'P': # se é uma pesquisa
-            sql = f'select * from {tabela} {condicao}'
+            sql = f'select * from {tabela} {teste_condicao}'
+        print(sql)
         self.cursor.execute(sql) # Executa a instrução no banco de dados
         self.ptabret = self.cursor.fetchall()
         if operacao=='P':
             if self.cursor.rowcount == 0:
                 retorno = False  # Se a pesquisa não encontrar nada retorna Falso
+            self.fechadb(self, self.mys_con)
         return retorno
         # except Error:
         #     print(F'Ocorreu o erro: {Error}')
