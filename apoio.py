@@ -1,9 +1,10 @@
 from tkinter import Frame, Label
 from tkinter.ttk import Treeview, Scrollbar
+from bancomysql import Cliente
 
 
-class Apoio:
-    def padroes(self):
+class Apoio:             #         1         2         3         4         5         6
+    def padroes(self):   #0123456789012345678901234567890123456789012345678901234567890123
         self.chave_api = 'gD2wMIIjim7uQGjS88flyIR6KHmeJiLAdv9wUY2RJCEoFvVKUBzQ3JwcJSehxuu3'
         self.senha_api = 'KjOLNwaVPl7AMaCe5DxAawmDCDTIxsfb6yJstucBqEMk2LGEBu5Okj3vgVPQYkFY'
         self.host = "br654.hostgator.com.br"
