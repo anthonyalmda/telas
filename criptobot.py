@@ -1,5 +1,6 @@
 #from tkinter import Tk
 from parametros import Param
+from bancomysq import Cliente
 from varredura import Varredura
 from msgtelegram import Telegram
 
@@ -10,8 +11,8 @@ class Criptobot(Param,Varredura,Telegram):
         #self.tela()
         #print(self.historico('ethbRL','h4',5))
         #self.temporario('consegui com a função simplificada')
-
-        Varredura()
+        cliente = Cliente.get(Cliente.cod_cli==self.vl_cliente)
+        Varredura(cliente.timeframe)
         #print(self.moedas())
         #self.root.mainloop()
     def tela(self):

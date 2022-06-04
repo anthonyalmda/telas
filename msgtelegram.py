@@ -9,9 +9,7 @@ class Telegram:
         chat = -1001704314396
         try:
             url = f'{url}sendMessage?chat_id={chat}&text={msg}'
-            print('entrei na rotina do bot')
+            print('entrei na rotina do telegram')
             requests.get(url)
         except Exception as retorno:
             print(f'deu o seguinte erro: {retorno}')
-
-

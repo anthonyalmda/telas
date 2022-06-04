@@ -124,9 +124,10 @@ class Bnbcomand(Apoio):
             df.loc[x,'candr'] = float(df.loc[x,'high']) - float(df.loc[x,'low'])
             df.loc[x,'bodyr'] = (float(df.loc[x,'open']) - float(df.loc[x,'close']))
         df['borat'] = df['bodyr']*100/ df['candr']
-        df.loc[x,'teste'] = False
         df = df.drop(['candr','bodyr'], axis=1)
         for x in range(df.count()[1]):
             if (df['borat'][x] > -50) and (df['borat'][x] < 50):
                 df.loc[x, 'teste'] = True
+            else:
+                df.loc[x, 'teste'] = False
         return df
