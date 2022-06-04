@@ -67,11 +67,9 @@ class Operacoes(BaseModel):
     cod_opera = ForeignKeyField(column_name='cod_opera', field='cod_opera', model=Ativos, null=True)
     dataarma = DateTimeField(null=True)
     datahoraabertura = DateTimeField(null=True)
-    datahorafhecamento = DateTimeField(null=True)
     lote = CharField(null=True)
     operacao = AutoField()
     preco_abertura = CharField()
-    preco_fechamento = CharField(null=True)
 
     class Meta:
         table_name = 'operacoes'

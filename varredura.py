@@ -1,4 +1,5 @@
 from tkinter import Tk, Button, Label, DISABLED, ACTIVE
+from time import sleep
 from operacional import Operacional
 from datetime import datetime
 from msgtelegram import Telegram
@@ -35,6 +36,7 @@ class Varredura(Operacional,Telegram):
     def inicio(self):
         self.sair = False
         self.btn_iniciar.configure(state=DISABLED)
+
         exe = ThreadPoolExecutor(max_workers=1)
         resposta = exe.map(self.pesquisa_oportunidades, self.timeframe)
 
@@ -63,11 +65,11 @@ class Varredura(Operacional,Telegram):
             #self.testaparescompra(3, 'h1', self.vl_cliente)
             self.contador2 += 1
             self.lab_conta2.configure(text=self.contador2)
-
             self.pesquisa_entradas()
+            # sleep(0.5)
 
     def pesquisa_entradas(self):
-        for x in Operacoes.select().where(Operacoes.aberto == 0):
+        for x in Operacoes.select():
             ativo = Ativos.select().where(Ativos.cod_opera == x.cod_opera).get()
             par = ativo.moeda_base + ativo.moeda_compra
             preco = float(x.preco_abertura)
@@ -85,7 +87,6 @@ class Varredura(Operacional,Telegram):
                                        preco_abertura=x.preco_abertura,
                                        abertura=x.datahoraabertura,
                                        alvo=str(float(x.preco_abertura)*(1+(cliente.margem_lucro/100))))
-
                 # linha_excluir = Operacoes.get(Operacoes.operacao == x.operacao)
                 # linha_excluir.delete_instance()
 

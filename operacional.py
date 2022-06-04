@@ -60,12 +60,11 @@ class Operacional(Dados, Bnbcomand, Telegram):
         df_teste, lo_valido, vl_velaindefinida, vl_velafuga, vl_cod_opera, vl_diferenca, vl_ponto_compra, st_ativo = arg
         #import ipdb; ipdb.set_trace()
         if df_teste.loc[0, 'teste'] == True or df_teste.loc[1, 'teste'] == True:  #
-            print(f'a vela base é: condição é: {(vl_velaindefinida * vl_diferenca) <= vl_velafuga}')
             if (vl_velaindefinida * vl_diferenca) <= vl_velafuga:  # Se a fuga for adequada grava na tabela para aguardar o ponto de entrada
                 vl_cod_opera = int(vl_cod_opera)
                 print(f'entrei no if o cod_opera é: {vl_cod_opera} e o valor é: {vl_ponto_compra}')
-                p = Operacoes.select().where(Operacoes.ativo == vl_cod_opera and Operacoes.preco_abertura == vl_ponto_compra)
-                print(f'o resultado do select é: {p}')
+                p = Operacoes.select().where(Operacoes.ativo == vl_cod_opera & (Operacoes.preco_abertura == vl_ponto_compra))
+                print(f'o resultado do select é: {p.count()}')
                 if p.count() == 0:
                     self.send_mensage(f'Oportunidade de compra foi armada para o par {st_ativo} \nValor de compra {vl_ponto_compra}')
                     Operacoes.create(
