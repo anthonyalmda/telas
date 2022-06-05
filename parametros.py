@@ -1,4 +1,4 @@
-tkinter import Toplevel, Tk
+from tkinter import Toplevel, Tk
 from tkinter import Label, Frame, Entry, Button, RAISED, RIDGE, ttk
 from apoio import Apoio
 
