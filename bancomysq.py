@@ -19,7 +19,7 @@ class Cliente(BaseModel):
     status = IntegerField(constraints=[SQL("DEFAULT 0")])
     tamanho_fuga = IntegerField(null=True)
     telefone = CharField()
-    timeframe = CharField(null=True)
+    timeframe = CharField(constraints=[SQL("DEFAULT 'H4'")])
 
     class Meta:
         table_name = 'Cliente'
@@ -51,11 +51,11 @@ class Ativos(BaseModel):
 
 class EntradasAbertas(BaseModel):
     abertura = DateTimeField(null=True)
+    alvo = CharField(null=True)
     cod_opera = IntegerField(null=True)
     fechamento = DateTimeField(null=True)
     operacao = IntegerField(null=True)
     preco_abertura = CharField(null=True)
-    alvo = CharField(null=True)
     preco_fechamento = CharField(null=True)
 
     class Meta:

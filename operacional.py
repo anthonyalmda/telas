@@ -7,12 +7,9 @@ from msgtelegram import Telegram
 
 
 class Operacional(Dados, Bnbcomand, Telegram):
-    def __init__(self):
+    def __init__(self, flag):
         self.padroes()
-        #self.bot = Telegram.iniciar()
-        #self.testaparescompra(0,'h1','003')
-        # self.mys_con = self.abredb(hostc=self.host,bancoc=self.banco,usuarioc=self.usuario,senhac=self.senha,porta=3306)
-        # self.cursor = self.mys_con.cursor()
+        self.encerra = flag
 
     def testaparescompra(self, vl_diferenca, st_time_teste,vl_cliente):
         """
@@ -23,6 +20,7 @@ class Operacional(Dados, Bnbcomand, Telegram):
         :return:
         """
         st_time_teste = st_time_teste.upper()         #ajusta o valor passado para caixa alta
+
         lista=[]
         for x in Ativos.select().where(Ativos.cliente == vl_cliente):  # carrela a lista de ativos para tratamento posterior paralelizado
             # print(f'entrei no for de testa compra e x vale: {x}')
@@ -31,10 +29,11 @@ class Operacional(Dados, Bnbcomand, Telegram):
             lista += [[st_ativo, vl_diferenca, st_time_teste, vl_cod_opera]]
         funcao = Pipeline(self.pega_ativo, self.testa_ativo)
         executa = ThreadPoolExecutor(max_workers=3)
-        resposta = executa.map(funcao, lista)
-
+        result = executa.map(funcao, lista)
+        return result
 
     def pega_ativo(self, arg):
+        print('estou entrando nos testes')
         st_ativo,  vl_diferenca, st_time_teste, vl_cod_opera = arg
         df_teste = self.testevela(par=st_ativo, time=st_time_teste, velas=4)  # gerar dataframe com o teste de validação da vela
         lo_valido = True
@@ -63,24 +62,14 @@ class Operacional(Dados, Bnbcomand, Telegram):
             if (vl_velaindefinida * vl_diferenca) <= vl_velafuga:  # Se a fuga for adequada grava na tabela para aguardar o ponto de entrada
                 vl_cod_opera = int(vl_cod_opera)
                 print(f'entrei no if o cod_opera é: {vl_cod_opera} e o valor é: {vl_ponto_compra}')
-                p = Operacoes.select().where(Operacoes.ativo == vl_cod_opera & (Operacoes.preco_abertura == vl_ponto_compra))
-                print(f'o resultado do select é: {p.count()}')
-                if p.count() == 0:
+                obj_localiza = Operacoes.select().where((Operacoes.cod_opera == vl_cod_opera) & (Operacoes.preco_abertura == vl_ponto_compra))
+                print(f'o resultado do select é: {obj_localiza.count()}')
+                if obj_localiza.count() == 0:
                     self.send_mensage(f'Oportunidade de compra foi armada para o par {st_ativo} \nValor de compra {vl_ponto_compra}')
-                    Operacoes.create(
-                        ativo=vl_cod_opera,
-                        preco_abertura=str(vl_ponto_compra),
-                        dataarma=datetime.now())
+                    operacao = Operacoes(ativo=int(vl_cod_opera),  preco_abertura=str(vl_ponto_compra), dataarma=datetime.now())
+                    operacao.cod_opera = vl_cod_opera
+                    operacao.save()
                 return True
-
-    # def pipeline(self,*funcs):
-    #     print(f'entrei pipe e funcs é: {funcs}')
-    #     def inner(argument):
-    #         print(f'Entrei no inner e o argumento é: {argument}')
-    #         state = argument
-    #         for func in funcs:
-    #             state = func(state)
-    #     return inner
 
 class Pipeline:
     def __init__(self,*funcs):
